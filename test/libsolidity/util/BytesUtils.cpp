@@ -17,6 +17,8 @@
 
 #include <test/libsolidity/util/BytesUtils.h>
 
+#include <test/libsolidity/util/SoltestErrors.h>
+
 #include <liblangutil/Common.h>
 
 #include <boost/algorithm/string.hpp>
@@ -33,13 +35,15 @@ using namespace dev::solidity::test;
 using namespace std;
 using namespace soltest;
 
-bytes BytesUtils::alignLeft(bytes _bytes) const
+bytes BytesUtils::alignLeft(bytes _bytes)
 {
+	soltestAssert(_bytes.size() <= 32, "");
 	return std::move(_bytes) + bytes(32 - _bytes.size(), 0);
 }
 
-bytes BytesUtils::alignRight(bytes _bytes) const
+bytes BytesUtils::alignRight(bytes _bytes)
 {
+	soltestAssert(_bytes.size() <= 32, "");
 	return bytes(32 - _bytes.size(), 0) + std::move(_bytes);
 }
 
@@ -47,7 +51,7 @@ bytes BytesUtils::applyAlign(
 	Parameter::Alignment _alignment,
 	ABIType& _abiType,
 	bytes _bytes
-) const
+)
 {
 	if (_alignment != Parameter::Alignment::None)
 		_abiType.alignDeclared = true;
@@ -115,9 +119,11 @@ bytes BytesUtils::convertString(string const& _literal)
 	}
 }
 
-string BytesUtils::formatUnsigned(bytes const& _bytes) const
+string BytesUtils::formatUnsigned(bytes const& _bytes)
 {
 	stringstream os;
+
+	soltestAssert(!_bytes.empty(), "");
 
 	if (*_bytes.begin() & 0x80)
 		os << u2s(fromBigEndian<u256>(_bytes));
@@ -127,9 +133,11 @@ string BytesUtils::formatUnsigned(bytes const& _bytes) const
 	return os.str();
 }
 
-string BytesUtils::formatSigned(bytes const& _bytes) const
+string BytesUtils::formatSigned(bytes const& _bytes)
 {
 	stringstream os;
+
+	soltestAssert(!_bytes.empty(), "");
 
 	if (*_bytes.begin() & 0x80)
 		os << u2s(fromBigEndian<u256>(_bytes));
@@ -139,7 +147,7 @@ string BytesUtils::formatSigned(bytes const& _bytes) const
 	return os.str();
 }
 
-string BytesUtils::formatBoolean(bytes const& _bytes) const
+string BytesUtils::formatBoolean(bytes const& _bytes)
 {
 	stringstream os;
 	u256 result = fromBigEndian<u256>(_bytes);
@@ -154,7 +162,7 @@ string BytesUtils::formatBoolean(bytes const& _bytes) const
 	return os.str();
 }
 
-string BytesUtils::formatHex(bytes const& _bytes) const
+string BytesUtils::formatHex(bytes const& _bytes)
 {
 	stringstream os;
 
@@ -165,7 +173,7 @@ string BytesUtils::formatHex(bytes const& _bytes) const
 	return os.str();
 }
 
-string BytesUtils::formatHexString(bytes const& _bytes) const
+string BytesUtils::formatHexString(bytes const& _bytes)
 {
 	stringstream os;
 
@@ -174,7 +182,7 @@ string BytesUtils::formatHexString(bytes const& _bytes) const
 	return os.str();
 }
 
-string BytesUtils::formatString(bytes const& _bytes) const
+string BytesUtils::formatString(bytes const& _bytes)
 {
 	stringstream os;
 
@@ -197,10 +205,34 @@ string BytesUtils::formatString(bytes const& _bytes) const
 	return os.str();
 }
 
+string BytesUtils::formatRawBytes(bytes const& _bytes)
+{
+	if (!_bytes.empty())
+	{
+		stringstream os;
+		auto it = _bytes.begin();
+		size_t size = 32;
+		for (size_t i = 0; i < _bytes.size() / size; i++)
+		{
+			long offset = static_cast<long>(size);
+			auto offsetIter = it + offset;
+			bytes byteRange{it, offsetIter};
+
+			os << "  " << byteRange << endl;
+
+			it += offset;
+		}
+
+		return os.str();
+	}
+	else
+		return "[]";
+}
+
 string BytesUtils::formatBytes(
 	bytes const& _bytes,
 	ABIType const& _abiType
-) const
+)
 {
 	stringstream os;
 
