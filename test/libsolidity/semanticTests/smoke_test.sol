@@ -95,7 +95,7 @@ contract C {
 // g() -> 2, 3
 // h(uint256,uint256): 1, -2 -> 3
 // j(bool): true -> false
-// k(bytes32): 0x10 -> 0x10, 0x10
+// k(bytes32): 0x1001 -> 0x1001, 0x1001
 // l(): hex"4200ef" -> 7
 // m(bytes): 32, 32, 0x20 -> 32, 32, 0x20
 // m(bytes): 32, 3, hex"AB33BB" -> 32, 3, left(0xAB33BB)
