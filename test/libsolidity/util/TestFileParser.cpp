@@ -208,9 +208,9 @@ Parameter TestFileParser::parseParameter()
 	Parameter parameter;
 	if (accept(Token::Newline, true))
 		parameter.format.newline = true;
+	parameter.abiType = ABIType{ABIType::None, ABIType::AlignNone, 0};
 
 	bool isSigned = false;
-
 	if (accept(Token::Left, true))
 	{
 		parameter.rawString += formatToken(Token::Left);

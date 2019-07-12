@@ -115,12 +115,31 @@ auto isTupleArray(string _type) -> bool
 	return regex_match(_type, regex{"(tuple)(\\[\\d+\\])"});
 }
 
+auto functionMatchesSignature(Json::Value const& _contractABIFunction, string const& _signature) -> bool
+{
+	string functionName{_signature.substr(0, _signature.find("("))};
+	string functionParameters{_signature.substr(_signature.find("(") + 1, _signature.find(")") - 2)};
+
+	vector<string> parameterTypes;
+	if (!functionParameters.empty())
+		boost::split(parameterTypes, functionParameters, [](char c){return c == ',';});
+
+	vector<string> abiParameterTypes;
+	for (auto const& input: _contractABIFunction["inputs"])
+		abiParameterTypes.push_back(input["type"].asString());
+
+	return (
+		_contractABIFunction["name"] == functionName &&
+		parameterTypes == abiParameterTypes
+	);
+}
+
 }
 
 boost::optional<dev::solidity::test::ParameterList> ContractABIUtils::parametersFromJson(
 	ErrorReporter& _errorReporter,
 	Json::Value const& _contractABI,
-	string const& _functionName
+	string const& _functionSignature
 )
 {
 	ParameterList addressTypeParams;
@@ -129,12 +148,16 @@ boost::optional<dev::solidity::test::ParameterList> ContractABIUtils::parameters
 
 	ParameterList finalParams;
 
+	if (!_contractABI)
+		return boost::none;
+
 	for (auto const& function: _contractABI)
 	{
-		if (function["name"] == _functionName)
+		if (functionMatchesSignature(function, _functionSignature))
 			for (auto const& output: function["outputs"])
 			{
 				string type = output["type"].asString();
+
 				ABITypes addressTypes;
 				ABITypes valueTypes;
 				ABITypes dynamicTypes;
@@ -227,50 +250,45 @@ bool ContractABIUtils::appendTypesFromName(
 	return true;
 }
 
-void ContractABIUtils::overwriteWithABITypes(
+void ContractABIUtils::overwriteParameters(
 	ErrorReporter& _errorReporter,
-	ParameterList& _inputParameters,
-	ParameterList const& _abiParameters
+	ParameterList& _targetParameters,
+	ParameterList const& _sourceParameters
 )
 {
-	auto overwriteSize = [&](Parameter _a, Parameter& _b) -> void
+	auto overwrite = [&](Parameter _a, Parameter& _b) -> void
 	{
 		if (
 			_a.abiType.size != _b.abiType.size ||
 			_a.abiType.type != _b.abiType.type
 		)
 		{
-			_errorReporter.warning(
-				"Type of parameter with value \"" + _b.rawString +
-				"\" does not match the one inferred from ABI."
-			);
+			_errorReporter.warning("Type or size of parameter(s) does not match.");
 			_b = _a;
 		}
 	};
-	boost::for_each(_abiParameters, _inputParameters, boost::bind<void>(overwriteSize, _1, _2));
+	boost::for_each(_sourceParameters, _targetParameters, boost::bind<void>(overwrite, _1, _2));
 }
 
 dev::solidity::test::ParameterList ContractABIUtils::preferredParameters(
 	ErrorReporter& _errorReporter,
-	ParameterList const& _inputParameters,
-	ParameterList const& _abiParameters,
+	ParameterList const& _targetParameters,
+	ParameterList const& _sourceParameters,
 	bytes _bytes
 )
 {
-	ParameterList out;
-	if (_inputParameters.size() != _abiParameters.size())
+	if (_targetParameters.size() != _sourceParameters.size())
 	{
 		auto sizeFold = [](size_t const _a, Parameter const& _b) { return _a + _b.abiType.size; };
-		size_t encodingSize = accumulate(_inputParameters.begin(), _inputParameters.end(), size_t{0}, sizeFold);
+		size_t encodingSize = accumulate(_targetParameters.begin(), _targetParameters.end(), size_t{0}, sizeFold);
 
 		_errorReporter.warning(
 			"Encoding does not match byte range. The call returned " +
 			to_string(_bytes.size()) + " bytes, but " +
 			to_string(encodingSize) + " bytes were expected."
 		);
-		out = _abiParameters;
+		return _sourceParameters;
 	}
 	else
-		out = _inputParameters;
-	return out;
+		return _targetParameters;
 }

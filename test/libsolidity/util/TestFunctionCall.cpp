@@ -144,56 +144,49 @@ string TestFunctionCall::formatBytesParameters(
 	ErrorReporter& _errorReporter,
 	bytes const& _bytes,
 	string const& _signature,
-	dev::solidity::test::ParameterList const& _params,
+	dev::solidity::test::ParameterList const& _parameters,
 	bool _highlight
 ) const
 {
 	using ParameterList = dev::solidity::test::ParameterList;
 
 	stringstream os;
-	string functionName{_signature.substr(0, _signature.find("("))};
-
 	if (_bytes.empty())
 		return {};
 
-	_errorReporter.warning("Following bytes were returned by the call: \n" + BytesUtils::formatRawBytes(_bytes));
+	_errorReporter.warning("The call to \"" + _signature + "\" returned \n" + BytesUtils::formatRawBytes(_bytes));
 
 	boost::optional<ParameterList> abiParams = ContractABIUtils::parametersFromJson(
 		_errorReporter,
 		m_contractABI,
-		functionName
+		_signature
 	);
 
 	if (abiParams)
 	{
 		boost::optional<ParameterList> preferredParams = ContractABIUtils::preferredParameters(
 			_errorReporter,
-			_params,
+			_parameters,
 			abiParams.get(),
 			_bytes
 		);
 
 		if (preferredParams)
 		{
-			ContractABIUtils::overwriteWithABITypes(_errorReporter, preferredParams.get(), abiParams.get());
+			ContractABIUtils::overwriteParameters(_errorReporter, preferredParams.get(), abiParams.get());
 			os << BytesUtils::formatBytesRange(_bytes, preferredParams.get(), _highlight);
 		}
 	}
 	else
 	{
-		if (_params.empty())
-		{
-			ParameterList parameters;
-			fill_n(
-				back_inserter(parameters),
-				_bytes.size() / 32,
-				Parameter{bytes(), "", ABIType{ABIType::UnsignedDec}, FormatInfo{}}
-			);
-			os << BytesUtils::formatBytesRange(_bytes, parameters, _highlight);
-		}
-		else
-			os << BytesUtils::formatBytesRange(_bytes, _params, _highlight);
-
+		ParameterList defaultParameters;
+		fill_n(
+			back_inserter(defaultParameters),
+			_bytes.size() / 32,
+			Parameter{bytes(), "", ABIType{ABIType::UnsignedDec}, FormatInfo{}}
+		);
+		ContractABIUtils::overwriteParameters(_errorReporter, defaultParameters, _parameters);
+		os << BytesUtils::formatBytesRange(_bytes, defaultParameters, _highlight);
 	}
 	return os.str();
 }

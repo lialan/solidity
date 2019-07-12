@@ -20,6 +20,9 @@ contract C {
     function f() payable public returns (uint) {
         return 2;
     }
+    function f(uint a) public returns (uint, uint) {
+        return (a, a);
+    }
     function g() public returns (uint, uint) {
         return (2, 3);
     }
@@ -87,6 +90,7 @@ contract C {
 // _() -> FAILURE
 // e() ->
 // f() -> 2
+// f(uint256): 3 -> 3, 3
 // f(), 1 ether -> 2
 // g() -> 2, 3
 // h(uint256,uint256): 1, -2 -> 3

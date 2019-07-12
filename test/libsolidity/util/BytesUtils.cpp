@@ -124,11 +124,7 @@ string BytesUtils::formatUnsigned(bytes const& _bytes)
 	stringstream os;
 
 	soltestAssert(!_bytes.empty(), "");
-
-	if (*_bytes.begin() & 0x80)
-		os << u2s(fromBigEndian<u256>(_bytes));
-	else
-		os << fromBigEndian<u256>(_bytes);
+	os << fromBigEndian<u256>(_bytes);
 
 	return os.str();
 }
@@ -218,9 +214,11 @@ string BytesUtils::formatRawBytes(bytes const& _bytes)
 			auto offsetIter = it + offset;
 			bytes byteRange{it, offsetIter};
 
-			os << "  " << byteRange << endl;
+			os << "  " << byteRange;
 
 			it += offset;
+			if (it != _bytes.end())
+				os << endl;
 		}
 
 		return os.str();
@@ -243,7 +241,10 @@ string BytesUtils::formatBytes(
 		// be signed. If an unsigned was detected in the expectations,
 		// but the actual result returned a signed, it would be formatted
 		// incorrectly.
-		os << formatUnsigned(_bytes);
+		if (*_bytes.begin() & 0x80)
+			os << formatSigned(_bytes);
+		else
+			os << formatUnsigned(_bytes);
 		break;
 	case ABIType::SignedDec:
 		os << formatSigned(_bytes);

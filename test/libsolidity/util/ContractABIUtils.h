@@ -45,24 +45,23 @@ public:
 	static boost::optional<ParameterList> parametersFromJson(
 		ErrorReporter& _errorReporter,
 		Json::Value const& _contractABI,
-		std::string const& _functionName
+		std::string const& _functionSignature
 	);
 
-	/// Overwrites types given by _inputParameters with ABI types if given
-	/// ones do not match.
-	static void overwriteWithABITypes(
+	/// Overwrites _targetParameters if ABI types or sizes given
+	/// by _sourceParameters do not match.
+	static void overwriteParameters(
 		ErrorReporter& _errorReporter,
-		ParameterList& _inputParameters,
-		ParameterList const& _abiParameters
+		ParameterList& _targetParameters,
+		ParameterList const& _sourceParameters
 	);
 
-	/// If parameter count does not match, take types defined by ABI, but only
-	/// if the contract ABI is defined (needed for format tests where the actual
-	/// result does not matter).
+	/// If parameter count does not match, take types defined _sourceParameters
+	/// and create a warning if so.
 	static ParameterList preferredParameters(
 		ErrorReporter& _errorReporter,
-		ParameterList const& _inputParameters,
-		ParameterList const& _abiParameters,
+		ParameterList const& _targetParameters,
+		ParameterList const& _sourceParameters,
 		bytes _bytes
 	);
 
