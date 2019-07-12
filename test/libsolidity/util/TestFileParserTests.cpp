@@ -749,14 +749,6 @@ BOOST_AUTO_TEST_CASE(call_ether_type_invalid)
 	BOOST_REQUIRE_THROW(parse(source), langutil::Error);
 }
 
-BOOST_AUTO_TEST_CASE(call_hex_number_invalid)
-{
-	char const* source = R"(
-		// f(bytes32, bytes32): 0x616, 0x042 -> 1
-	)";
-	BOOST_REQUIRE_THROW(parse(source), langutil::Error);
-}
-
 BOOST_AUTO_TEST_CASE(call_signed_bool_invalid)
 {
 	char const* source = R"(

@@ -98,10 +98,7 @@ bytes BytesUtils::convertHexNumber(string const& _literal)
 {
 	try
 	{
-		if (_literal.size() % 2)
-			throw Error(Error::Type::ParserError, "Hex number encoding invalid.");
-		else
-			return fromHex(_literal);
+		return fromHex(_literal);
 	}
 	catch (std::exception const&)
 	{
