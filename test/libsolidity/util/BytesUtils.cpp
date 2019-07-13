@@ -201,20 +201,26 @@ string BytesUtils::formatString(bytes const& _bytes)
 	return os.str();
 }
 
-string BytesUtils::formatRawBytes(bytes const& _bytes)
+string BytesUtils::formatRawBytes(bytes const& _bytes, string _linePrefix, bool _withSignature)
 {
 	if (!_bytes.empty())
 	{
 		stringstream os;
 		auto it = _bytes.begin();
-		size_t size = 32;
-		for (size_t i = 0; i < _bytes.size() / size; i++)
+
+		if (_withSignature)
 		{
-			long offset = static_cast<long>(size);
+			it = it + 4;
+			os << _linePrefix << bytes{_bytes.begin(), it} << endl;
+		}
+
+		for (size_t i = 0; i < _bytes.size() / 32; i++)
+		{
+			long offset = 32;
 			auto offsetIter = it + offset;
 			bytes byteRange{it, offsetIter};
 
-			os << "  " << byteRange;
+			os << _linePrefix << byteRange;
 
 			it += offset;
 			if (it != _bytes.end())
@@ -224,7 +230,7 @@ string BytesUtils::formatRawBytes(bytes const& _bytes)
 		return os.str();
 	}
 	else
-		return "[]";
+		return  _linePrefix + "[]";
 }
 
 string BytesUtils::formatBytes(
@@ -286,19 +292,22 @@ string BytesUtils::formatBytesRange(
 		auto offsetIter = it + offset;
 		bytes byteRange{it, offsetIter};
 
-		if (!parameter.matchesBytes(byteRange))
-			AnsiColorized(
-				os,
-				_highlight,
-				{dev::formatting::RED_BACKGROUND}
-			) << formatBytes(byteRange, parameter.abiType);
-		else
-			os << parameter.rawString;
+		if (!parameter.format.hide)
+		{
+			if (!parameter.matchesBytes(byteRange))
+				AnsiColorized(
+					os,
+					_highlight,
+					{dev::formatting::RED_BACKGROUND}
+				) << formatBytes(byteRange, parameter.abiType);
+			else
+				os << parameter.rawString;
 
+			if (&parameter != &_parameters.back())
+				os << ", ";
+		}
 
 		it += offset;
-		if (&parameter != &_parameters.back())
-			os << ", ";
 	}
 	return os.str();
 }

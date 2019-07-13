@@ -99,7 +99,11 @@ public:
 	/// Returns a string representation of given _bytes. Adds a newline
 	/// every 32 bytes to increase readability.
 	/// Used to print returned bytes from function calls to the commandline.
-	static std::string formatRawBytes(bytes const& _bytes);
+	static std::string formatRawBytes(
+		bytes const& _bytes,
+		std::string _linePrefix = "",
+		bool _withSignature = false
+	);
 
 	/// Formats given _bytes with type information passed in _abiType.
 	static std::string formatBytes(bytes const& _bytes, ABIType const& _abiType);

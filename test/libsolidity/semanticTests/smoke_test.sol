@@ -15,7 +15,10 @@ contract C {
     constructor(uint _state) public {
         state = _state;
     }
+    function d() public {
+    }
     function e() public {
+        revert("Transaction failed.");
     }
     function f() payable public returns (uint) {
         return 2;
@@ -84,11 +87,14 @@ contract C {
         return (["any", "any"], ["any", "any", "any"]);
     }
 }
+// ====
+// EVMVersion: >homestead
 // ----
 // constructor(): 3 ->
 // state() -> 3
 // _() -> FAILURE
-// e() ->
+// d() ->
+// e() -> FAILURE, hex"08c379a0", 0x20, 19, "Transaction failed."
 // f() -> 2
 // f(uint256): 3 -> 3, 3
 // f(), 1 ether -> 2
