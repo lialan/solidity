@@ -197,7 +197,7 @@ jobs:
           command: sudo npm install -g solhint
       - run:
           name: Test Docs examples
-          command: ./test/docsExamples.sh
+          command: ./test/docsCodeStyle.sh
 
   chk_coding_style:
     docker:
