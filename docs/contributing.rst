@@ -30,7 +30,7 @@ the team and contributors are working on, we have two weekly team calls:
 - Monday at 12pm CET
 - Wednesday at 3pm CET
 
-Both calls take place on `this Google Hangout <https://hangouts.google.com/hangouts/_/ethereum.org/solidity-weekly>`_.
+Both calls take place on `Google Hangouts <https://hangouts.google.com/hangouts/_/ethereum.org/solidity-weekly>`_.
 
 How to Report Issues
 ====================
