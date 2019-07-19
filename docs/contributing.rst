@@ -25,7 +25,7 @@ Team Calls
 ==========
 
 If you have issues or pull requests to discuss, or are interested in hearing what
-the team and contributors are working on, we have two weekly team calls:
+the team and contributors are working on, you can join our public team calls:
 
 - Monday at 12pm CET
 - Wednesday at 3pm CET
